@@ -1,0 +1,11 @@
+{
+    "name": "hackdavis-mailer",
+    "version": "1.0.0",
+    "description": "super cool awesome firebase listener for sending emails",
+    "author": "HackDavis Team",
+    "dependencies": {
+        "dotenv": "^8.2.0",
+        "firebase-admin": "^9.4.1",
+        "nodemailer": "^6.4.16"
+    }
+}
