@@ -5,8 +5,6 @@ const {EmailType, FormatEmail} = require('./messageTemplates');
 const firebase = require("firebase-admin");
 const serviceAccount = require("./servicer.json");
 require("dotenv").config({ path: "./.env" });
-const hostname = '127.0.0.1';
-const port = 8081;
 
 firebase.initializeApp({
     credential: firebase.credential.cert(serviceAccount),
@@ -25,11 +23,18 @@ docRef.onSnapshot(function (querySnapshot) {
                 console.log(`Document ${doc.id} has been added!`);
             }
         } 
-        
         else {
             if (dataIsValid(doc.data())) {
                 if (Object.keys(groups[doc.id].pending_members).length < Object.keys(doc.data().pending_members).length) { // new member request was added 
                     NewMemberRequest(groups[doc.id].pending_members || [], doc.data().pending_members || [], doc.data());
+                } else if (Object.keys(groups[doc.id].pending_members).length > Object.keys(doc.data().pending_members).length) { // member request was accepted or denied
+                    console.log(groups[doc.id].members)
+                    console.log(doc.data().members)
+                    if (Object.keys(groups[doc.id].members).length < Object.keys(doc.data().members).length) { // member request was accepted 
+                        MemberAccepted(groups[doc.id].members || [], doc.data().members || [], doc.data());
+                    } else if (Object.keys(groups[doc.id].members).length == Object.keys(doc.data().members).length) { // member request was denied 
+                        MemberDenied(groups[doc.id].pending_members || [], doc.data().pending_members || [], doc.data());
+                    }
                 }
                 groups[doc.id] = doc.data();
             }
@@ -63,7 +68,47 @@ function NewMemberRequest(old_pending, new_pending, doc_data)
         team_name: doc_data.name
     }
 
-    console.log(data)
+    sendEmail(data);
+}
+
+function MemberAccepted(old_members, new_members, doc_data) {
+    let new_member;
+    Object.keys(new_members).forEach(function(key) {
+        if (old_members[key] == undefined) 
+        {
+            new_member = new_members[key];
+        }
+    })
+
+    const data = 
+    {
+        emailType: EmailType.MemberApproved,
+        member_name: new_member[0],
+        member_email: new_member[1],
+        team_name: doc_data.name,
+    }
+
+    console.log(data);
+    sendEmail(data);
+}
+
+function MemberDenied(old_pending, new_pending, doc_data) {
+    let denied_member;
+    Object.keys(old_pending).forEach(function(key) {
+        if (new_pending[key] == undefined)
+        {
+            denied_member = old_pending[key];
+        }
+    })
+
+    const data = 
+    {
+        emailType: EmailType.MemberDenied,
+        member_name: denied_member[0],
+        member_email: denied_member[1],
+        team_name: doc_data.name,
+    }
+
     sendEmail(data);
 }
 

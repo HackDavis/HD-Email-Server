@@ -132,7 +132,7 @@ function FormatEmail(data)
         }
         
         // A member was accepted to this team
-        case EmailType.MemberAccepted:
+        case EmailType.MemberApproved:
         {
             return {
                 subject: util.format(EmailMessages[data.emailType].subject, 
