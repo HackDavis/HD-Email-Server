@@ -76,9 +76,6 @@ EmailMessages[EmailType.MemberDenied] = {
         <h2>Hey %s,</h2>
         <br> 
         <h1>Oh no! It looks like your request to join %s has expired.</h1>
-        <h2>
-            This could be due to several reasons, such as you joining/creating a different team, your request to join being denied, or the team you requested being disbanded.
-        </h2>
 
         <img src='https://i.imgur.com/KSQr6EN.jpg' />
 

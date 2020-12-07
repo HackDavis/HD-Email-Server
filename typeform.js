@@ -3,13 +3,30 @@ const refresh_interval = 1000 * 60; // Check for new responses every minute
 const typeformAPI = createClient({ token: process.env.TYPEFORM_TOKEN });
 
 // Cached users
-const users = {}
+let emails = {};
+
+function updateUserDoc(db, uid) {
+    db.collection("users").doc(uid).update({
+        app_status: "Pending Review"
+    })
+    .then(function(doc) {
+        // console.log("Automatic user status update complete");
+    })
+    .catch(function(error) {
+        console.log("Error: ", error)
+    })
+}
+
+function UserCreated(user)
+{
+
+}
 
 function StartTypeformCheck(db, firebase)
 {
-    console.log("Starting typeform checks...");
+    // console.log("Starting typeform checks...");
     CheckTypeformResponses(db, firebase);
-    
+
     setInterval(() => {
         CheckTypeformResponses(db, firebase);
     }, refresh_interval);
@@ -39,27 +56,11 @@ function CheckTypeformResponses(db, firebase)
     .then(response => {
         response.items.forEach((form_response) => 
         {
-            const email = form_response.answers[2].email;
-            
-            firebase.auth().getUserByEmail(email)
-            .then(userRecord => {
-                
-                const uid = userRecord.toJSON().uid;
-                console.log(uid);
-
-                // Now update firebase if needed with application status (check users table)
-
-            })
-            .catch(error => {
-                // User has not logged into the website yet
-                // console.log("User not found")
-            })
-
+            emails[form_response.answers[2].email] = true;
         })
     })
     .then(() => 
     {
-        console.log("Finished checking users.")
     })
     .catch((reason) => 
     {
@@ -67,4 +68,9 @@ function CheckTypeformResponses(db, firebase)
     })
 }
 
-module.exports = {StartTypeformCheck}
+function GetAppliedEmails()
+{
+    return emails;
+}
+
+module.exports = {StartTypeformCheck, GetAppliedEmails}

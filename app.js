@@ -1,6 +1,6 @@
 const {EmailType, FormatEmail} = require('./messageTemplates');
 require("dotenv").config({ path: "./.env" });
-const {StartTypeformCheck} = require('./typeform');
+const {StartTypeformCheck, GetAppliedEmails} = require('./typeform');
 const firebase = require("firebase-admin");
 const serviceAccount = require("./servicer.json");
 
@@ -17,21 +17,17 @@ docRef = db.collection("groups")
 let groups = {}
 var groupsHasLoaded = false;
 docRef.onSnapshot(function (querySnapshot) {
-    console.log("Enter docRef.onSnapshot");
     querySnapshot.forEach(function (doc) {
         if (!groupsHasLoaded) {
             if (dataIsValid(doc.data())) {
                 groups[doc.id] = doc.data();
-                console.log(`Document ${doc.id} has been added!`);
             }
         } 
         else {
             if (groups[doc.id] == undefined && dataIsValid(doc.data())) {
-                console.log("creating the cache for team")
                 groups[doc.id] = doc.data();
             }
             else if (dataIsValid(doc.data()) && groups[doc.id] != undefined) {
-                console.log("team exists in the cache")
                 if (Object.keys(groups[doc.id].pending_members).length < Object.keys(doc.data().pending_members).length) { // new member request was added 
                     NewMemberRequest(groups[doc.id].pending_members || [], doc.data().pending_members || [], doc.data());
                 } else if (Object.keys(groups[doc.id].pending_members).length > Object.keys(doc.data().pending_members).length) { // member request was accepted or denied
@@ -46,7 +42,33 @@ docRef.onSnapshot(function (querySnapshot) {
         }
     });
     groupsHasLoaded = true;
-    console.log("groupsHasLoaded is true at end");
+});
+
+var usersHasLoaded = false;
+var docRef = db.collection("users");
+
+docRef.onSnapshot(function (snapshot) {
+    snapshot.docChanges().forEach(function(change) {
+        if (usersHasLoaded && (change.type == "added" || change.type == "modified")) { // a new user was created or its document was updated 
+            let user_email = change.doc.data().email
+            if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email]) { 
+                db.collection("users").doc(change.doc.data().user_id).set({
+                    app_status: "Pending Review",
+                    wants_refresh: false
+                }, { merge: true })
+                .then(function () {
+                    // console.log("Document successfully written!")
+                })
+                .catch(function (error) {
+                    console.error("Error writing document: ", error)
+                })
+            }
+        } else if (usersHasLoaded && change.type == "deleted") { // the old user document was just deleted 
+            // console.log("User was deleted");
+        }
+    });
+    // console.log("initial user load is now done");
+    usersHasLoaded = true;
 });
 
 function NewMemberRequest(old_pending, new_pending, doc_data)
@@ -94,7 +116,7 @@ function MemberAccepted(old_members, new_members, doc_data) {
         team_name: doc_data.name,
     }
 
-    console.log(data);
+    // console.log(data);
     sendEmail(data);
 }
 
@@ -147,8 +169,8 @@ var transporter = nodemailer.createTransport({
 function sendEmail(data)
 {
     const email_data = FormatEmail(data);
-    console.log("email data:");
-    console.log(email_data);
+    // console.log("email data:");
+    // console.log(email_data);
 
     const mailOptions = {
         from: `"HackDavis Team Finder" <team@hackdavis.io>`,
@@ -170,5 +192,5 @@ function sendEmail(data)
 
 process.on('exit', function() {
     unsubscribe();
-    console.log("Listener has been unsubscribed");
+    // console.log("Listener has been unsubscribed");
 });
