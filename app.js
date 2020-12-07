@@ -1,7 +1,8 @@
 const {EmailType, FormatEmail} = require('./messageTemplates');
+require("dotenv").config({ path: "./.env" });
+const {StartTypeformCheck} = require('./typeform');
 const firebase = require("firebase-admin");
 const serviceAccount = require("./servicer.json");
-require("dotenv").config({ path: "./.env" });
 
 firebase.initializeApp({
     credential: firebase.credential.cert(serviceAccount),
@@ -9,6 +10,9 @@ firebase.initializeApp({
 });
 
 var db = firebase.firestore();
+
+StartTypeformCheck(db, firebase);
+
 docRef = db.collection("groups")
 let groups = {}
 var groupsHasLoaded = false;
