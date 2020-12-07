@@ -70,15 +70,25 @@ EmailMessages[EmailType.MemberApproved] = {
 }
 
 EmailMessages[EmailType.MemberDenied] = {
-    subject: `⛔ Your Request to Join %s has Been Denied ⛔`,
+    subject: `❌ Your Request to Join %s has Expired ❌`,
     html: `
         <center>
         <h2>Hey %s,</h2>
         <br> 
-        <h1>Oh no! It looks like %s denied your request to join their team.</h1>
-        <br>
+        <h1>Oh no! It looks like your request to join %s has expired.</h1>
+        <h2>
+            This could be due to several reasons, such as you joining/creating a different team, your request to join being denied, or the team you requested being disbanded.
+        </h2>
 
         <img src='https://i.imgur.com/KSQr6EN.jpg' />
+
+        
+        <h3>This could be due to several reasons, such as:</h3>
+        <ul>
+            <li>You joining/creating a different team</li> 
+            <li>Your request to join being denied or cancelled</li>
+            <li>The team you requested being disbanded</li>
+        </ul>
 
         <br><br> 
         <h2>Don't worry - you can head to <a href='hackdavis.io'>hackdavis.io</a> to keep on browsing for more teams!
