@@ -63,6 +63,17 @@ docRef.onSnapshot(function (snapshot) {
                     console.error("Error writing document: ", error)
                 })
             }
+            else {
+                db.collection("users").doc(change.doc.data().user_id).set({
+                    wants_refresh: false
+                }, { merge: true })
+                .then(function () {
+                    // console.log("Document successfully written!")
+                })
+                .catch(function (error) {
+                    console.error("Error writing document: ", error)
+                })
+            }
         } else if (usersHasLoaded && change.type == "deleted") { // the old user document was just deleted 
             // console.log("User was deleted");
         }
