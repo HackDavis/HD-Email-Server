@@ -67,7 +67,7 @@ docRef.onSnapshot(function (snapshot) {
                 })
             }
             else if (change.doc.data().group_id != "" && change.doc.data().badges[6] == undefined) {
-                let updatedBadges = JSON.parse(JSON.stringify(doc.data().badges));
+                let updatedBadges = JSON.parse(JSON.stringify(change.doc.data().badges));
                 updatedBadges["Teaming"] = Date.now();
                 db.collection("users").doc(change.doc.data().user_id).set({
                     badges: updatedBadges,
