@@ -51,9 +51,24 @@ docRef.onSnapshot(function (snapshot) {
     snapshot.docChanges().forEach(function(change) {
         if (usersHasLoaded && (change.type == "added" || change.type == "modified")) { // a new user was created or its document was updated 
             let user_email = change.doc.data().email
-            if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email]) { 
+
+            // Manual database update
+            if (change.doc.data().app_status != "Not Yet Applied" && change.doc.data().badges["Applied"] == undefined)
+            {
                 let updatedBadges = JSON.parse(JSON.stringify(change.doc.data().badges));
                 updatedBadges["Applied"] = new Date(Date.now()).toDateString();
+                db.collection("users").doc(change.doc.data().user_id).set({
+                    badges: updatedBadges,
+                }, { merge: true })
+                .then(function () {
+                    // console.log("Document successfully written!")
+                })
+                .catch(function (error) {
+                    console.error("Error writing document: ", error)
+                })
+            }
+
+            if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email]) { 
                 db.collection("users").doc(change.doc.data().user_id).set({
                     app_status: "Pending Review",
                     badges: updatedBadges,
