@@ -68,7 +68,7 @@ docRef.onSnapshot(function (snapshot) {
                 })
             }
 
-            if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && change.doc.data().app_status != "Not Yet Applied") { 
+            if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && change.doc.data().app_status == "Not Yet Applied") { 
                 db.collection("users").doc(change.doc.data().user_id).set({
                     app_status: "Pending Review",
                     wants_refresh: false
