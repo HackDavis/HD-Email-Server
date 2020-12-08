@@ -53,7 +53,7 @@ docRef.onSnapshot(function (snapshot) {
             let user_email = change.doc.data().email
             if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email]) { 
                 let updatedBadges = JSON.parse(JSON.stringify(change.doc.data().badges));
-                updatedBadges["Applied"] = Date.now();
+                updatedBadges["Applied"] = Date.now().toDateString();
                 db.collection("users").doc(change.doc.data().user_id).set({
                     app_status: "Pending Review",
                     badges: updatedBadges,
@@ -68,7 +68,7 @@ docRef.onSnapshot(function (snapshot) {
             }
             else if (change.doc.data().group_id == "" && change.doc.data().badges[6] == undefined) {
                 let updatedBadges = JSON.parse(JSON.stringify(change.doc.data().badges));
-                updatedBadges["Teaming"] = Date.now();
+                updatedBadges["Teaming"] = Date.now().toDateString();
                 db.collection("users").doc(change.doc.data().user_id).set({
                     badges: updatedBadges,
                 }, { merge: true })
