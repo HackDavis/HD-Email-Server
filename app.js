@@ -66,7 +66,7 @@ docRef.onSnapshot(function (snapshot) {
                     console.error("Error writing document: ", error)
                 })
             }
-            else if (change.doc.data().group_id == "" && change.doc.data().badges[6] == undefined) {
+            else if (change.doc.data().group_id != "" && change.doc.data().badges["Teaming"] == undefined) {
                 let updatedBadges = JSON.parse(JSON.stringify(change.doc.data().badges));
                 updatedBadges["Teaming"] = new Date(Date.now()).toDateString();
                 db.collection("users").doc(change.doc.data().user_id).set({
