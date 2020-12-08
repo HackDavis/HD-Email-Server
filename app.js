@@ -52,9 +52,25 @@ docRef.onSnapshot(function (snapshot) {
         if (usersHasLoaded && (change.type == "added" || change.type == "modified")) { // a new user was created or its document was updated 
             let user_email = change.doc.data().email
             if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email]) { 
+                let updatedBadges = JSON.parse(JSON.stringify(change.doc.data().badges));
+                updatedBadges["Applied"] = Date.now();
                 db.collection("users").doc(change.doc.data().user_id).set({
                     app_status: "Pending Review",
+                    badges: updatedBadges,
                     wants_refresh: false
+                }, { merge: true })
+                .then(function () {
+                    // console.log("Document successfully written!")
+                })
+                .catch(function (error) {
+                    console.error("Error writing document: ", error)
+                })
+            }
+            else if (change.doc.data().group_id != "" && change.doc.data().badges[6] == undefined) {
+                let updatedBadges = JSON.parse(JSON.stringify(doc.data().badges));
+                updatedBadges["Teaming"] = Date.now();
+                db.collection("users").doc(change.doc.data().user_id).set({
+                    badges: updatedBadges,
                 }, { merge: true })
                 .then(function () {
                     // console.log("Document successfully written!")
