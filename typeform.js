@@ -56,7 +56,7 @@ function CheckTypeformResponses(db, firebase)
     .then(response => {
         response.items.forEach((form_response) => 
         {
-            emails[form_response.answers[2].email] = true;
+            emails[form_response.answers[2].email.toLowerCase()] = true;
         })
     })
     .then(() => 
