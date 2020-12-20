@@ -132,8 +132,7 @@ function FormatEmail(data)
                     data.member_name,
                     data.member_email,
                     data.member_name,
-                    data.member_message,
-                    data.member_name),
+                    data.member_message),
                 to: data.team_member_emails
             };
         }
