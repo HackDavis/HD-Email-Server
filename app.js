@@ -50,7 +50,7 @@ var docRef = db.collection("users");
 docRef.onSnapshot(function (snapshot) {
     snapshot.docChanges().forEach(function(change) {
         if (usersHasLoaded && (change.type == "added" || change.type == "modified")) { // a new user was created or its document was updated 
-            let user_email = change.doc.data().email
+            let user_email = change.doc.data().email.toLowerCase();
 
             // Manual database update
             if (change.doc.data().app_status != "Not Yet Applied" && change.doc.data().badges["Applied"] == undefined)
