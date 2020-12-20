@@ -81,11 +81,11 @@ EmailMessages[EmailType.MemberDenied] = {
 
         
         <h3>This could be due to several reasons, such as:</h3>
-        <ul>
-            <li>You joining/creating a different team</li> 
-            <li>Your request to join being denied or cancelled</li>
-            <li>The team you requested being disbanded</li>
-        </ul>
+        <p>
+            You joining/creating a different team<br>
+            Your request to join being denied or cancelled<br>
+            The team you requested being disbanded
+        </p>
 
         <br><br> 
         <h2>Don't worry - you can head to <a href='hackdavis.io'>hackdavis.io</a> to keep on browsing for more teams!
