@@ -1,5 +1,6 @@
 const {EmailType, FormatEmail} = require('./messageTemplates');
 require("dotenv").config({ path: "./.env" });
+const fs = require('fs');
 const {StartTypeformCheck, GetAppliedEmails} = require('./typeform');
 const firebase = require("firebase-admin");
 const serviceAccount = require("./servicer.json");
@@ -12,6 +13,15 @@ firebase.initializeApp({
 var db = firebase.firestore();
 
 StartTypeformCheck(db, firebase);
+
+var email_list = [];
+try {
+    var all_emails = fs.readFileSync('accepted_emails.txt', 'utf8');
+    all_emails = all_emails.replace(/\s+/g, ' ').trim();
+    email_list = all_emails.split(' ');
+} catch(e) {
+    console.log('Error:', e.stack);
+}
 
 docRef = db.collection("groups")
 let groups = {}
@@ -68,7 +78,20 @@ docRef.onSnapshot(function (snapshot) {
                 })
             }
 
-            if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && change.doc.data().app_status == "Not Yet Applied") { 
+            if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && email_list.includes(user_email)) {
+                db.collection("users").doc(change.doc.data().user_id).set({
+                    app_status: "Application Accepted",
+                    RSVP: "Pending",
+                    wants_refresh: false,
+                }, { merge: true })
+                .then(function () {
+                    // console.log("The following email was updated: ", doc.data().email, "with ID: ", doc.id);
+                })
+                .catch(function (error) {
+                    console.error("Error writing document: ", error)
+                })
+            }
+            else if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && change.doc.data().app_status == "Not Yet Applied") { 
                 db.collection("users").doc(change.doc.data().user_id).set({
                     app_status: "Pending Review",
                     wants_refresh: false
@@ -233,5 +256,4 @@ function sendEmail(data)
 
 process.on('exit', function() {
     unsubscribe();
-    // console.log("Listener has been unsubscribed");
 });
