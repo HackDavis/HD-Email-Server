@@ -56,7 +56,7 @@ function CheckTypeformResponses(db, firebase)
     .then(response => {
         response.items.forEach((form_response) => 
         {
-            emails[form_response.answers[2].email.toLowerCase()] = true;
+            emails[RemovePeriodsInEmail(form_response.answers[2].email.toLowerCase())] = true;
         })
     })
     .then(() => 
@@ -66,6 +66,12 @@ function CheckTypeformResponses(db, firebase)
     {
         console.log(reason);
     })
+}
+
+function RemovePeriodsInEmail(email)
+{
+    const split = email.toLowerCase().split("@");
+    return `${split[0].replace(".", "")}@${split[1]}`
 }
 
 function GetAppliedEmails()

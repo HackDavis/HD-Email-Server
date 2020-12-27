@@ -57,10 +57,16 @@ docRef.onSnapshot(function (querySnapshot) {
 var usersHasLoaded = false;
 var docRef = db.collection("users");
 
+function RemovePeriodsInEmail(email)
+{
+    const split = email.toLowerCase().split("@");
+    return `${split[0].replace(".", "")}@${split[1]}`
+}
+
 docRef.onSnapshot(function (snapshot) {
     snapshot.docChanges().forEach(function(change) {
         if (usersHasLoaded && (change.type == "added" || change.type == "modified")) { // a new user was created or its document was updated 
-            let user_email = change.doc.data().email.toLowerCase();
+            let user_email = RemovePeriodsInEmail(change.doc.data().email.toLowerCase());
 
             // Manual database update
             if (change.doc.data().app_status != "Not Yet Applied" && change.doc.data().badges["Applied"] == undefined)
