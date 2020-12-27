@@ -10,12 +10,22 @@ firebase.initializeApp({
 
 var db = firebase.firestore();
 
+function RemovePeriodsInEmail(email)
+{
+    const split = email.toLowerCase().split("@");
+    return `${split[0].replace(".", "")}@${split[1]}`
+}
+
 var email_list = [];
 try {
     var all_emails = fs.readFileSync('accepted_emails.txt', 'utf8');
     console.log("all_emails: \n", all_emails);
     all_emails = all_emails.replace(/\s+/g, ' ').trim();
     email_list = all_emails.split(' ');
+    for (let i = 0; i < all_emails.length; i++)
+    {
+        all_emails[i] = RemovePeriodsInEmail(all_emails[i]);
+    }
     console.log("email_list: \n", email_list);
 } catch(e) {
     console.log('Error:', e.stack);
@@ -23,7 +33,7 @@ try {
 
 db.collection("users").get().then(function(querySnapshot) {
     querySnapshot.forEach(function(doc) {
-        if (doc.data().app_status != "Application Accepted" && email_list.includes(doc.data().email)) {
+        if (doc.data().app_status != "Application Accepted" && email_list.includes(RemovePeriodsInEmail(doc.data().email))) {
             db.collection("users").doc(doc.id).update({
                 app_status: "Application Accepted",
                 RSVP: "Pending"

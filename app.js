@@ -19,6 +19,10 @@ try {
     var all_emails = fs.readFileSync('accepted_emails.txt', 'utf8');
     all_emails = all_emails.replace(/\s+/g, ' ').trim();
     email_list = all_emails.split(' ');
+    for (let i = 0; i < all_emails.length; i++)
+    {
+        all_emails[i] = RemovePeriodsInEmail(all_emails[i]);
+    }
 } catch(e) {
     console.log('Error:', e.stack);
 }
