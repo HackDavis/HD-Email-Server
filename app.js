@@ -27,6 +27,19 @@ try {
     console.log('Error:', e.stack);
 }
 
+var workshop_emails = [];
+try {
+    var all__workshop_emails = fs.readFileSync('workshop_emails.txt', 'utf8');
+    all__workshop_emails = all__workshop_emails.replace(/\s+/g, ' ').trim();
+    workshop_emails = all__workshop_emails.split(' ');
+    for (let i = 0; i < workshop_emails.length; i++)
+    {
+        workshop_emails[i] = RemovePeriodsInEmail(workshop_emails[i]);
+    }
+} catch(e) {
+    console.log('Error:', e.stack);
+}
+
 docRef = db.collection("groups")
 let groups = {}
 var groupsHasLoaded = false;
@@ -58,39 +71,42 @@ docRef.onSnapshot(function (querySnapshot) {
     groupsHasLoaded = true;
 });
 
-var usersHasLoaded = false;
-var docRef = db.collection("users");
-
 function RemovePeriodsInEmail(email)
 {
     const split = email.toLowerCase().split("@");
     return `${split[0].replace(".", "")}@${split[1]}`
 }
 
+function updateIndependentBadges(user_data, user_email) {
+    let updatedBadges = JSON.parse(JSON.stringify(user_data.badges));
+    if (user_data.badges["Applied"] == undefined && (user_data.app_status != "Not Yet Applied" || GetAppliedEmails()[user_email]))
+    {
+        updatedBadges["Applied"] = new Date(Date.now()).toDateString();
+    }
+    if (user_data.badges["Teaming"] == undefined && user_data.group_id != "")
+    {
+        updatedBadges["Teaming"] = new Date(Date.now()).toDateString();
+    }
+    if (user_data.badges["Pre-event"] == undefined && workshop_emails.includes(user_email))
+    {
+        updatedBadges["Pre-event"] = new Date(Date.now()).toDateString();
+    }
+    return updatedBadges
+}
+
+var usersHasLoaded = false;
+var docRef = db.collection("users");
+
 docRef.onSnapshot(function (snapshot) {
     snapshot.docChanges().forEach(function(change) {
         if (usersHasLoaded && (change.type == "added" || change.type == "modified")) { // a new user was created or its document was updated 
             let user_email = RemovePeriodsInEmail(change.doc.data().email.toLowerCase());
 
-            // Manual database update
-            if (change.doc.data().app_status != "Not Yet Applied" && change.doc.data().badges["Applied"] == undefined)
-            {
-                let updatedBadges = JSON.parse(JSON.stringify(change.doc.data().badges));
-                updatedBadges["Applied"] = new Date(Date.now()).toDateString();
-                db.collection("users").doc(change.doc.data().user_id).set({
-                    badges: updatedBadges,
-                }, { merge: true })
-                .then(function () {
-                    // console.log("Document successfully written!")
-                })
-                .catch(function (error) {
-                    console.error("Error writing document: ", error)
-                })
-            }
-
             if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && email_list.includes(user_email) && change.doc.data().app_status != "Application Accepted") {
+                let updatedBadges = updateIndependentBadges(change.doc.data(), user_email);
                 db.collection("users").doc(change.doc.data().user_id).set({
                     app_status: "Application Accepted",
+                    badges: updatedBadges,
                     RSVP: "Pending",
                     wants_refresh: false
                 }, { merge: true })
@@ -101,9 +117,11 @@ docRef.onSnapshot(function (snapshot) {
                     console.error("Error writing document: ", error)
                 })
             }
-            else if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && change.doc.data().app_status == "Not Yet Applied") { 
+            else if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && change.doc.data().app_status == "Not Yet Applied") {
+                let updatedBadges = updateIndependentBadges(change.doc.data(), user_email); 
                 db.collection("users").doc(change.doc.data().user_id).set({
                     app_status: "Pending Review",
+                    badges: updatedBadges,
                     wants_refresh: false
                 }, { merge: true })
                 .then(function () {
@@ -113,21 +131,10 @@ docRef.onSnapshot(function (snapshot) {
                     console.error("Error writing document: ", error)
                 })
             }
-            else if (change.doc.data().group_id != "" && change.doc.data().badges["Teaming"] == undefined) {
-                let updatedBadges = JSON.parse(JSON.stringify(change.doc.data().badges));
-                updatedBadges["Teaming"] = new Date(Date.now()).toDateString();
+            else {
+                let updatedBadges = updateIndependentBadges(change.doc.data(), user_email);
                 db.collection("users").doc(change.doc.data().user_id).set({
                     badges: updatedBadges,
-                }, { merge: true })
-                .then(function () {
-                    // console.log("Document successfully written!")
-                })
-                .catch(function (error) {
-                    console.error("Error writing document: ", error)
-                })
-            }
-            else {
-                db.collection("users").doc(change.doc.data().user_id).set({
                     wants_refresh: false
                 }, { merge: true })
                 .then(function () {
