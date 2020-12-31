@@ -5,6 +5,7 @@ const typeformAPI = createClient({ token: process.env.TYPEFORM_TOKEN });
 // Cached users
 let emails = {};
 let mentored_emails = {}
+let checked_in_emails = {}
 
 function updateUserDoc(db, uid) {
     db.collection("users").doc(uid).update({
@@ -101,6 +102,24 @@ function CheckTypeformResponses(db, firebase)
     {
         console.log(reason);
     })
+
+    // Also query the checked-in responses typeform
+    typeformAPI
+    .responses
+    .list({uid: process.env.TYPEFORM_CHECKIN_ID, pageSize: 1000})
+    .then(response => {
+        response.items.forEach((form_response) => 
+        {
+            checked_in_emails[RemovePeriodsInEmail(form_response.answers[2].email.toLowerCase())] = true;
+        })
+    })
+    .then(() => 
+    {
+    })
+    .catch((reason) => 
+    {
+        console.log(reason);
+    })
 }
 
 function RemovePeriodsInEmail(email)
@@ -120,4 +139,9 @@ function GetMentoredEmails()
     return mentored_emails;
 }
 
-module.exports = {StartTypeformCheck, GetAppliedEmails, GetMentoredEmails}
+function GetCheckedInEmails()
+{
+    return checked_in_emails;
+}
+
+module.exports = {StartTypeformCheck, GetAppliedEmails, GetMentoredEmails, GetCheckedInEmails}
