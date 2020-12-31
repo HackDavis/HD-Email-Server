@@ -91,7 +91,7 @@ function updateIndependentBadges(user_data, user_email) {
     {
         updatedBadges["Pre-event"] = new Date(Date.now()).toDateString();
     }
-    if (user_data.badges["Mentored"] == undefined && GetMentoredEmails()[user_email])
+    if (user_data.badges["Mentored"] == undefined && GetMentoredEmails()[RemovePeriodsInEmail(user_email.toLowerCase())])
     {
         updatedBadges["Mentored"] = new Date(Date.now()).toDateString();
     }
