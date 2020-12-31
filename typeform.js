@@ -48,11 +48,9 @@ function CheckTypeformResponses(db, firebase)
 
      */
 
-    // If there are more than 1000 responses, this will need to be modified to do two GET requests
-    // to get all the users. See https://developer.typeform.com/responses/reference/retrieve-responses/ for details
     typeformAPI
     .responses
-    .list({uid: process.env.TYPEFORM_FORM_ID, pageSize: 1000})
+    .list({uid: process.env.TYPEFORM_FORM_ID, pageSize: 1000, until: "2020-12-28T12:00:00"})
     .then(response => {
         response.items.forEach((form_response) => 
         {
@@ -61,6 +59,24 @@ function CheckTypeformResponses(db, firebase)
     })
     .then(() => 
     {
+        // Because there are over 1000 responses, get the next few responses
+        // See https://developer.typeform.com/responses/reference/retrieve-responses/ for details
+        typeformAPI
+        .responses
+        .list({uid: process.env.TYPEFORM_FORM_ID, pageSize: 1000, since: "2020-12-28T12:00:00"})
+        .then(response => {
+            response.items.forEach((form_response) => 
+            {
+                emails[RemovePeriodsInEmail(form_response.answers[2].email.toLowerCase())] = true;
+            })
+        })
+        .then(() => 
+        {
+        })
+        .catch((reason) => 
+        {
+            console.log(reason);
+        })
     })
     .catch((reason) => 
     {
