@@ -4,6 +4,7 @@ const typeformAPI = createClient({ token: process.env.TYPEFORM_TOKEN });
 
 // Cached users
 let emails = {};
+let mentored_emails = {}
 
 function updateUserDoc(db, uid) {
     db.collection("users").doc(uid).update({
@@ -82,6 +83,24 @@ function CheckTypeformResponses(db, firebase)
     {
         console.log(reason);
     })
+
+    // Also query the mentored responses typeform
+    typeformAPI
+    .responses
+    .list({uid: process.env.TYPEFORM_MENTORED_ID, pageSize: 1000})
+    .then(response => {
+        response.items.forEach((form_response) => 
+        {
+            mentored_emails[RemovePeriodsInEmail(form_response.answers[4].email.toLowerCase())] = true;
+        })
+    })
+    .then(() => 
+    {
+    })
+    .catch((reason) => 
+    {
+        console.log(reason);
+    })
 }
 
 function RemovePeriodsInEmail(email)
@@ -95,4 +114,10 @@ function GetAppliedEmails()
     return emails;
 }
 
-module.exports = {StartTypeformCheck, GetAppliedEmails}
+// Gets a list of emails of people who filled out the mentored typeform for the badge
+function GetMentoredEmails()
+{
+    return mentored_emails;
+}
+
+module.exports = {StartTypeformCheck, GetAppliedEmails, GetMentoredEmails}
