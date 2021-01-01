@@ -1,7 +1,7 @@
 const {EmailType, FormatEmail} = require('./messageTemplates');
 require("dotenv").config({ path: "./.env" });
 const fs = require('fs');
-const {StartTypeformCheck, GetAppliedEmails, GetMentoredEmails, GetCheckedInEmails} = require('./typeform');
+const {StartTypeformCheck, GetAppliedEmails, GetMentoredEmails, GetCheckedInEmails, GetDoEWorkshopEmails} = require('./typeform');
 const firebase = require("firebase-admin");
 const serviceAccount = require("./servicer.json");
 
@@ -126,6 +126,11 @@ function updateIndependentBadges(user_data, user_email) {
     {
         updatedBadges["Mentored"] = new Date(Date.now()).toDateString();
     }
+    if (user_data.badges["Workshop"] == undefined && GetDoEWorkshopEmails()[RemovePeriodsInEmail(user_email.toLowerCase())])
+    {
+        updatedBadges["Workshop"] = new Date(Date.now()).toDateString();
+    }
+
     return updatedBadges
 }
 
