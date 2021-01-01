@@ -110,7 +110,7 @@ function CheckTypeformResponses(db, firebase)
     .then(response => {
         response.items.forEach((form_response) => 
         {
-            checked_in_emails[RemovePeriodsInEmail(form_response.answers[2].email.toLowerCase())] = true;
+            checked_in_emails[form_response.answers[2].email.toLowerCase()] = true;
         })
     })
     .then(() => 

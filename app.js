@@ -1,7 +1,7 @@
 const {EmailType, FormatEmail} = require('./messageTemplates');
 require("dotenv").config({ path: "./.env" });
 const fs = require('fs');
-const {StartTypeformCheck, GetAppliedEmails, GetMentoredEmails} = require('./typeform');
+const {StartTypeformCheck, GetAppliedEmails, GetMentoredEmails, GetCheckedInEmails} = require('./typeform');
 const firebase = require("firebase-admin");
 const serviceAccount = require("./servicer.json");
 
@@ -13,6 +13,37 @@ firebase.initializeApp({
 var db = firebase.firestore();
 
 StartTypeformCheck(db, firebase);
+
+let cached_checkin_emails = {};
+
+setInterval(() => {
+    
+    const new_checkin_emails = GetCheckedInEmails();
+
+    Object.keys(new_checkin_emails).forEach(email => {
+        if (cached_checkin_emails[email] == undefined)
+        {
+            // They just filled out the typeform 
+            // Does not guarantee that they are not checked in
+            firebase.auth().getUserByEmail(email)
+            .then(userRecord => {
+                const uid = userRecord.toJSON().uid;
+                
+                db.collection("users").doc(uid).set({
+                    checkedIn: true
+                }, { merge: true })
+                .catch(function (error) {
+                    console.log(error);
+                })
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+        }
+    });
+    
+    cached_checkin_emails = new_checkin_emails;
+}, 1000 * 60);
 
 var email_list = [];
 try {
@@ -112,7 +143,8 @@ docRef.onSnapshot(function (snapshot) {
                     app_status: "Application Accepted",
                     badges: updatedBadges,
                     RSVP: "Pending",
-                    wants_refresh: false
+                    wants_refresh: false,
+                    checkedIn: false
                 }, { merge: true })
                 .then(function () {
                     // console.log("The following email was updated: ", doc.data().email, "with ID: ", doc.id);
@@ -126,7 +158,8 @@ docRef.onSnapshot(function (snapshot) {
                 db.collection("users").doc(change.doc.data().user_id).set({
                     app_status: "Pending Review",
                     badges: updatedBadges,
-                    wants_refresh: false
+                    wants_refresh: false,
+                    checkedIn: false
                 }, { merge: true })
                 .then(function () {
                     // console.log("Document successfully written!")
@@ -139,7 +172,8 @@ docRef.onSnapshot(function (snapshot) {
                 let updatedBadges = updateIndependentBadges(change.doc.data(), user_email);
                 db.collection("users").doc(change.doc.data().user_id).set({
                     badges: updatedBadges,
-                    wants_refresh: false
+                    wants_refresh: false,
+                    checkedIn: (change.doc.data().checkedIn == true),
                 }, { merge: true })
                 .then(function () {
                     // console.log("Document successfully written!")
