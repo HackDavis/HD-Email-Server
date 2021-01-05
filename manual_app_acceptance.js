@@ -22,9 +22,10 @@ try {
     console.log("all_emails: \n", all_emails);
     all_emails = all_emails.replace(/\s+/g, ' ').trim();
     email_list = all_emails.split(' ');
-    for (let i = 0; i < all_emails.length; i++)
+    for (let i = 0; i < email_list.length; i++)
     {
-        all_emails[i] = RemovePeriodsInEmail(all_emails[i]);
+        email_list[i] = RemovePeriodsInEmail(email_list[i]);
+        console.log(email_list[i])
     }
     console.log("email_list: \n", email_list);
 } catch(e) {
