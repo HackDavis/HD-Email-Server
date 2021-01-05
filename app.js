@@ -58,6 +58,19 @@ try {
     console.log('Error:', e.stack);
 }
 
+// var denied_email_list = [];
+// try {
+//     var all_denied_emails = fs.readFileSync('denied_emails.txt', 'utf8');
+//     all_denied_emails = all_denied_emails.replace(/\s+/g, ' ').trim();
+//     denied_email_list = all_denied_emails.split(' ');
+//     for (let i = 0; i < denied_email_list.length; i++)
+//     {
+//         denied_email_list[i] = RemovePeriodsInEmail(denied_email_list[i]);
+//     }
+// } catch(e) {
+//     console.log('Error:', e.stack);
+// }
+
 var workshop_emails = [];
 try {
     var all__workshop_emails = fs.readFileSync('workshop_emails.txt', 'utf8');
@@ -158,6 +171,17 @@ docRef.onSnapshot(function (snapshot) {
                     console.error("Error writing document: ", error)
                 })
             }
+            // else if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && denied_email_list.includes(user_email) && change.doc.data().app_status != "Application Denied") {
+            //     db.collection("users").doc(change.doc.data().user_id).set({
+            //         app_status: "Application Denied",
+            //     }, { merge: true })
+            //     .then(function () {
+            //         // console.log("The following email was updated: ", doc.data().email, "with ID: ", doc.id);
+            //     })
+            //     .catch(function (error) {
+            //         console.error("Error writing document: ", error)
+            //     })
+            // }
             else if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && change.doc.data().app_status == "Not Yet Applied") {
                 let updatedBadges = updateIndependentBadges(change.doc.data(), user_email); 
                 db.collection("users").doc(change.doc.data().user_id).set({
