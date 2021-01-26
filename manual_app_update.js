@@ -1,3 +1,6 @@
+// Run this to manually update an app's status. Useful for when a person applied with a non-gmail but logged in to the website with a gmail.
+// This will not give badges for people who were accepted - use manual_app_acceptance for that
+
 const { EmailType, FormatEmail } = require("./messageTemplates");
 require("dotenv").config({ path: "./.env" });
 const firebase = require("firebase-admin");

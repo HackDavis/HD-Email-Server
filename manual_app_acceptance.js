@@ -1,3 +1,4 @@
+// Used to link applicant emails together and update their application status
 require("dotenv").config({ path: "./.env" });
 const firebase = require("firebase-admin");
 const serviceAccount = require("./servicer.json");

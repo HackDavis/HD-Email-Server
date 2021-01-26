@@ -1,5 +1,6 @@
+// Update applicant status to DENIED
 require("dotenv").config({ path: "./.env" });
-const firebase = require("firebase-admin");
+const firebase = require("firebase-admin");r
 const serviceAccount = require("./servicer.json");
 const fs = require('fs');
 

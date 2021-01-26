@@ -1,3 +1,4 @@
+// Doc to store all of the different types of email templates we have. 
 const util = require('util');
 
 const EmailType = 

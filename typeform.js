@@ -25,6 +25,7 @@ function UserCreated(user)
 
 }
 
+// Queries the typeform every minute to get new responses for those who applied
 function StartTypeformCheck(db, firebase)
 {
     // console.log("Starting typeform checks...");
@@ -141,6 +142,7 @@ function CheckTypeformResponses(db, firebase)
     })
 }
 
+// When there are periods in the email, it messes up the format so you should remove them first
 function RemovePeriodsInEmail(email)
 {
     const split = email.toLowerCase().split("@");

@@ -1,3 +1,8 @@
+/* 
+    Sends out emails for all team finder functions (request to join a team and request denial/acceptance)
+    Updates user badges and application statuses based on certain typeform email lists and finalized text lists of all emails 
+*/ 
+
 const {EmailType, FormatEmail} = require('./messageTemplates');
 require("dotenv").config({ path: "./.env" });
 const fs = require('fs');
@@ -5,6 +10,7 @@ const {StartTypeformCheck, GetAppliedEmails, GetMentoredEmails, GetCheckedInEmai
 const firebase = require("firebase-admin");
 const serviceAccount = require("./servicer.json");
 
+// initialize firebase and typeform email checks
 firebase.initializeApp({
     credential: firebase.credential.cert(serviceAccount),
     databaseURL: process.env.DATABASE_URL
@@ -16,10 +22,10 @@ StartTypeformCheck(db, firebase);
 
 let cached_checkin_emails = {};
 
+// Get a list of checked in emails and update the applicant in the database every minute
 setInterval(() => {
-    
     const new_checkin_emails = GetCheckedInEmails();
-
+    // USE OBJECT.KEYS TO ITERATE THROUGH DICTIONARY KEYS
     Object.keys(new_checkin_emails).forEach(email => {
         if (cached_checkin_emails[email] == undefined)
         {
@@ -45,6 +51,7 @@ setInterval(() => {
     cached_checkin_emails = new_checkin_emails;
 }, 1000 * 60);
 
+// Convert emails into a readable format 
 var email_list = [];
 try {
     var all_emails = fs.readFileSync('accepted_emails.txt', 'utf8');
@@ -57,20 +64,7 @@ try {
 } catch(e) {
     console.log('Error:', e.stack);
 }
-
-// var denied_email_list = [];
-// try {
-//     var all_denied_emails = fs.readFileSync('denied_emails.txt', 'utf8');
-//     all_denied_emails = all_denied_emails.replace(/\s+/g, ' ').trim();
-//     denied_email_list = all_denied_emails.split(' ');
-//     for (let i = 0; i < denied_email_list.length; i++)
-//     {
-//         denied_email_list[i] = RemovePeriodsInEmail(denied_email_list[i]);
-//     }
-// } catch(e) {
-//     console.log('Error:', e.stack);
-// }
-
+// Convert emails into a readable format
 var workshop_emails = [];
 try {
     var all__workshop_emails = fs.readFileSync('workshop_emails.txt', 'utf8');
@@ -121,6 +115,7 @@ function RemovePeriodsInEmail(email)
     return `${split[0].replace(".", "")}@${split[1]}`
 }
 
+// Updates badges if needed
 function updateIndependentBadges(user_data, user_email) {
     let updatedBadges = JSON.parse(JSON.stringify(user_data.badges));
     if (user_data.badges["Applied"] == undefined && (user_data.app_status != "Not Yet Applied" || GetAppliedEmails()[user_email]))
@@ -171,17 +166,6 @@ docRef.onSnapshot(function (snapshot) {
                     console.error("Error writing document: ", error)
                 })
             }
-            // else if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && denied_email_list.includes(user_email) && change.doc.data().app_status != "Application Denied") {
-            //     db.collection("users").doc(change.doc.data().user_id).set({
-            //         app_status: "Application Denied",
-            //     }, { merge: true })
-            //     .then(function () {
-            //         // console.log("The following email was updated: ", doc.data().email, "with ID: ", doc.id);
-            //     })
-            //     .catch(function (error) {
-            //         console.error("Error writing document: ", error)
-            //     })
-            // }
             else if (change.doc.data().wants_refresh && GetAppliedEmails()[user_email] && change.doc.data().app_status == "Not Yet Applied") {
                 let updatedBadges = updateIndependentBadges(change.doc.data(), user_email); 
                 db.collection("users").doc(change.doc.data().user_id).set({
@@ -219,6 +203,7 @@ docRef.onSnapshot(function (snapshot) {
     usersHasLoaded = true;
 });
 
+// Send email when a new member requests to join the team
 function NewMemberRequest(old_pending, new_pending, doc_data)
 {
     let new_member;
@@ -247,6 +232,7 @@ function NewMemberRequest(old_pending, new_pending, doc_data)
     sendEmail(data);
 }
 
+// Send email when a member is accepted
 function MemberAccepted(old_members, new_members, doc_data) {
     let new_member;
     Object.keys(new_members).forEach(function(key) {
@@ -268,6 +254,7 @@ function MemberAccepted(old_members, new_members, doc_data) {
     sendEmail(data);
 }
 
+// Send email when a member is denied 
 function MemberDenied(old_pending, new_pending, doc_data) {
     let denied_member;
     Object.keys(old_pending).forEach(function(key) {
@@ -287,7 +274,7 @@ function MemberDenied(old_pending, new_pending, doc_data) {
 
     sendEmail(data);
 }
-
+// Check if fields are valid 
 function dataIsValid(data) {
     try {
         return (data.description.length > 0) &&
@@ -301,6 +288,7 @@ function dataIsValid(data) {
     }
 }
 
+//Establish nodemailer connection
 var nodemailer = require('nodemailer');
 
 var transporter = nodemailer.createTransport({
